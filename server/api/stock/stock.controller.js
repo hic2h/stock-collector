@@ -20,73 +20,6 @@ var stockOpen = function (hour) {
 
 // generate random shares
 exports.index = function (req, res) {
-    var markets = ['NYSE', 'AAPL', 'OODH', 'SPE', 'COS', 'EMA', 'HOU'];
-    var users = ['bernieMadoff', 'hicham', 'niaha', 'tunu', 'diego', 'lorance', 'marius', 'carrie'];
-    var accounts = ['PonziINC', 'AppleINC', 'Facobook', 'Hic2h', 'EkenzyLLC'];
-    //var item = items[Math.floor(Math.random()*items.length)];
-    var rate, count, count2;
-
-    function rand(min, max, interval) {
-        if (typeof(interval) === 'undefined') interval = 1;
-        var r = Math.floor(Math.random() * (max - min + interval) / interval);
-        return r * interval + min;
-    }
-
-    function randomDate(start, end, startHour, endHour) {
-        var date = new Date(+start + Math.random() * (end - start));
-        var hour = startHour + Math.random() * (endHour - startHour) | 0;
-        date.setHours(hour);
-        return date;
-    }
-
-
-    var date_old = moment("2015-04-02T15:04:05Z07:00", "YYYY-MM-DDTHH:mm:ssZ").toDate();
-    console.log(date_old);
-    var date_now = Date.now();
-
-    for (var i = 0; i < 1000; i++) {
-        rate = rand(1, 40);
-        count = rand(3, 15, 0.5);
-        count2 = rand(10, 20, 0.5);
-        var stock = {
-            "ticket": markets[Math.floor(Math.random() * markets.length)] + ':' + Math.random().toString(36).substring(3),
-            "user": users[Math.floor(Math.random() * users.length)],
-            "account": accounts[Math.floor(Math.random() * accounts.length)],
-            "sell": rate * count,
-            "rate": rate,
-            "time": randomDate(date_old, date_now, 15, 20),
-            "buy": rate * count2
-        };
-
-        (function (stock) {
-            Stock.create(stock, function (err, stock) {
-            });
-        }(stock));
-
-    }
-
-    setTimeout(function () {
-        accounts.forEach(function (account) {
-            (function (account) {
-                Stock.find({account: account})
-                    .exec(function (err, stocks) {
-                        var total = 0;
-                        if (stocks) {
-                            stocks.forEach(function (stock) {
-                                total = total + stock.buy - stock.sell
-                                console.log(stock.buy, stock.sell)
-                            });
-                            console.log({name: account, total_operated: total});
-                            Account.create({name: account, total_operated: total})
-                        }
-                    });
-            }(account));
-
-        });
-
-    }, 100000);
-
-
     return res.json({});
 
 };
@@ -115,7 +48,10 @@ exports.create = function (req, res) {
             if (err) {
                 return handleError(res, err);
             }
-            return res.status(201).json(stock);
+            return res.status(201).json({
+                success: true,
+                stock: stock
+            });
         });
     } else return res.status(400).json({
         success: false,
@@ -203,9 +139,10 @@ exports.mostActiveUser = function (req, res) {
 // Get the most expensive stock for the last day.
 exports.mostExpensiveStock = function (req, res) {
     Stock.distinct("market", function (error, results) {
-        if (!results) {
+        if (!results && !results.length) {
             return res.status(200).json({
-                success: true
+                success: true,
+                stock: []
             });
         } else {
             var most_expensive_stock = [];
