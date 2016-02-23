@@ -5,7 +5,7 @@ It's a node/express and mongoDB application.
 
 ## 1 - Installation
 
-        npm install
+        npm install --production
 
 ## 2 - Running the app
 Simply type:
